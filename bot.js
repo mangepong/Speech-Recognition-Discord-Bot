@@ -2,11 +2,9 @@ const Discord = require("discord.js");
 const speech = require('@google-cloud/speech');
 const fs = require('fs');
 const DeepSpeech = require('deepspeech');
-const Fs = require('fs');
 const Sox = require('sox-stream');
 const MemoryStream = require('memory-stream');
 const Duplex = require('stream').Duplex;
-const Wav = require('node-wav');
 const { exec } = require('child_process');
 
 let modelPath = './models/deepspeech-0.9.3-models.pbmm';
