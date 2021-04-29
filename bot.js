@@ -25,11 +25,12 @@ const speechClient = new speech.SpeechClient(); // https://www.npmjs.com/package
 
 const prefix = "?";
 
-const botChannel = "PUT TEXT CHANNEL ID FOR BOT";
+const botChannel = "356459780434558977";
 
-const token = "BOT TOKEN";
-const API_KEY = "API KEY FOR GOOGLE SEARCH";
-const CSE_ID = "CSE ID FOR THE GOOGLE SEARCH ENGINE";
+const token = "ODM2OTcyNDE1NTgxMjkwNTA2.YIlxTg.3Bi3EVOD8esC9a6R7PX5cK5u53k";
+const API_KEY = "AIzaSyDjypuFvUtvdhHEbckZW7dpLf5Iru3El3U";
+const CSE_ID = "6b8d60c7440df4fd3";
+
 
 client.on("ready", () => {
   console.log(`Bot has started, with ${client.users.cache.size} users, in ${client.channels.cache.size} channels of ${client.guilds.cache.size} guilds.`);
@@ -123,7 +124,7 @@ client.on("message", async message => {
                 console.log(resArr);
                 
                 if (result) {
-                  if ("google" == firstWord || "what" == firstWord || "how" == firstWord || "who" == firstWord || "when" == firstWord) {
+                  if ("google" == firstWord || "what" == firstWord || "how" == firstWord || "who" == firstWord || "when" == firstWord|| "why" == firstWord) {
                     if (resArr.includes("what") && resArr.includes("time")) {
                       console.log("INNE")
                       var current = new Date();

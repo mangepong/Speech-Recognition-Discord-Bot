@@ -10,7 +10,7 @@ My plan is to do a very simple version of Alexa/Siri for a discord bot.
 
 ### Update
 
-The bot now supports googling using one of the keywords `what, how, who, why, google`. It will post in the bot channel
+The bot now supports googling using one of the keywords `what, how, who, why, when, google`. It will post in the bot channel
 a embeded message with `title, link, thumbnail and description`.
 
 You can also ask the bot for the current time as long as you said these two keywords: `what, time`.
