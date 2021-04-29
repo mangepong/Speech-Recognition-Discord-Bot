@@ -25,11 +25,11 @@ const speechClient = new speech.SpeechClient(); // https://www.npmjs.com/package
 
 const prefix = "?";
 
-const botChannel = "356459780434558977";
+const botChannel = "BOT CHANNEL ID";
 
-const token = "ODM2OTcyNDE1NTgxMjkwNTA2.YIlxTg.3Bi3EVOD8esC9a6R7PX5cK5u53k";
-const API_KEY = "AIzaSyDjypuFvUtvdhHEbckZW7dpLf5Iru3El3U";
-const CSE_ID = "6b8d60c7440df4fd3";
+const token = "BOT TOKEN";
+const API_KEY = "API KEY FOR GOOGLE";
+const CSE_ID = "GOOGLE SEARCH ENGINE ID";
 
 
 client.on("ready", () => {
