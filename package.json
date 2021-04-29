@@ -1,0 +1,24 @@
+{
+  "name": "speach_to_text_discord_bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google-cloud/speech": "^4.4.0",
+    "argparse": "^1.0.10",
+    "deepspeech": "0.9.3",
+    "discord.js": "^12.5.3",
+    "ffmpeg-static": "^4.3.0",
+    "node-wav": "0.0.2",
+    "opusscript": "0.0.8",
+    "pcm2wav": "^1.0.3",
+    "sox-stream": "^2.0.3",
+    "util": "^0.11.1",
+    "vosk": "^0.3.25"
+  }
+}
