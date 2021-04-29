@@ -25,7 +25,7 @@ const speechClient = new speech.SpeechClient(); // https://www.npmjs.com/package
 
 const prefix = "?";
 
-const token = "ODM2OTcyNDE1NTgxMjkwNTA2.YIlxTg.2q73fzAbyS4Mm3aTUSYF1q31G60"
+const token = "TOKEN HERE"
 
 
 client.on("ready", () => {
