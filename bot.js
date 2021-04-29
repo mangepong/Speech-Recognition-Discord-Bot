@@ -6,7 +6,9 @@ const Sox = require('sox-stream');
 const MemoryStream = require('memory-stream');
 const Duplex = require('stream').Duplex;
 const { exec } = require('child_process');
+const { google } = require('googleapis');
 
+const customsearch = google.customsearch('v1');
 let modelPath = './models/deepspeech-0.9.3-models.pbmm';
 // let modelPath = './output_graph.pb';
 let model = new DeepSpeech.Model(modelPath);
@@ -23,8 +25,11 @@ const speechClient = new speech.SpeechClient(); // https://www.npmjs.com/package
 
 const prefix = "?";
 
-const token = "TOKEN HERE"
+const botChannel = "PUT TEXT CHANNEL ID FOR BOT";
 
+const token = "BOT TOKEN";
+const API_KEY = "API KEY FOR GOOGLE SEARCH";
+const CSE_ID = "CSE ID FOR THE GOOGLE SEARCH ENGINE";
 
 client.on("ready", () => {
   console.log(`Bot has started, with ${client.users.cache.size} users, in ${client.channels.cache.size} channels of ${client.guilds.cache.size} guilds.`);
@@ -109,16 +114,37 @@ client.on("message", async message => {
                 
                 let result = model.stt(audioBuffer);
                 
+                let firstWord = result.split(" ")[0];
+                
+                resArr = result.split(" ");
+
                 console.log('result:', result);
+                
+                console.log(resArr);
+                
                 if (result) {
-                  return message.reply(`Did you say: "` + result + '"?');
+                  if ("google" == firstWord || "what" == firstWord || "how" == firstWord || "who" == firstWord || "when" == firstWord) {
+                    if (resArr.includes("what") && resArr.includes("time")) {
+                      console.log("INNE")
+                      var current = new Date();
+                      client.channels.cache.get(botChannel).send("The time is: " + String(current.toLocaleTimeString()));
+                      exec('rm *.pcm');
+                    } else {
+                      google_search(result);
+                      console.log("GOOGLAR")
+                      exec('rm *.pcm');
+                    }
+                  } else {
+                    exec('rm *.pcm');
+                    return message.reply(`Did you say: "` + result + '"?');
+                  }
                 }
               });
               
-            }, 500);
+            }, 1000);
 
           } else {
-            await exec('rm ' + audioFileName);
+            exec('rm ' + audioFileName);
           }
         });
       });
@@ -134,5 +160,56 @@ function bufferToStream(buffer) {
 	stream.push(null);
 	return stream;
 }
+
+function setEmbed(title, url, desc, thumbnail="") {
+   const embedMessage = new Discord.MessageEmbed()
+	.setColor('#0099ff')
+	.setTitle(title)
+	.setURL(url)
+	.setDescription(desc)
+	.setThumbnail(thumbnail)
+
+  return embedMessage
+}
+
+function google_search(q) {
+  client.channels.cache.get(botChannel).send("Searching for: " + q);
+  customsearch.cse.list({
+		auth: API_KEY,
+		cx: CSE_ID,
+		q: q
+	})
+		.then(result => result.data)
+		.then((result) => {
+		const { queries, items, searchInformation } = result;
+
+		const page = (queries.request || [])[0] || {};
+		const previousPage = (queries.previousPage || [])[0] || {};
+		const nextPage = (queries.nextPage || [])[0] || {};
+
+		const data = {
+			q,
+			totalResults: page.totalResults,
+			count: page.count,
+			startIndex: page.startIndex,
+			nextPage: nextPage.startIndex,
+			previousPage: previousPage.startIndex,
+			time: searchInformation.searchTime,
+			items: items.map(o => ({
+			link: o.link,
+			title: o.title,
+			snippet: o.snippet,
+			img: (((o.pagemap || {}).cse_image || {})[0] || {}).src
+			}))
+		}
+		  // res.status(200).send(data);
+      let embed = setEmbed(data.items[0].title, data.items[0].link, data.items[0].snippet, data.items[0].img);
+      client.channels.cache.get(botChannel).send(embed);
+      console.log(data);
+		})
+		.catch((err) => {
+		  console.log(err);
+		});
+  }
 
 client.login(token);
