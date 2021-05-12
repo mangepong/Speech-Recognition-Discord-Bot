@@ -1,28 +1,31 @@
+'use strict';
+
+const SpeechToTextV1 = require('ibm-watson/speech-to-text/v1');
+const { IamAuthenticator } = require('ibm-watson/auth');
+var fs = require('fs');
 const Discord = require("discord.js");
-const speech = require('@google-cloud/speech');
-const fs = require('fs');
-const DeepSpeech = require('deepspeech');
-const Sox = require('sox-stream');
-const MemoryStream = require('memory-stream');
-const Duplex = require('stream').Duplex;
 const { exec } = require('child_process');
 const { google } = require('googleapis');
 const config = require("./config.json");
 
 const customsearch = google.customsearch('v1');
-let modelPath = './models/deepspeech-0.9.3-models.pbmm';
-// let modelPath = './output_graph.pb';
-let model = new DeepSpeech.Model(modelPath);
 
-let desiredSampleRate = model.sampleRate();
-
-let scorerPath = './models/deepspeech-0.9.3-models.scorer';
-
-model.enableExternalScorer(scorerPath);
 
 const client = new Discord.Client();
 
 const prefix = "?";
+
+
+const botChannel = config.botChannel;
+
+const token = config.botToken;
+
+const API_KEY = config.API_KEY;
+const CSE_ID = config.CSE_ID;
+
+const IBM_API_KEY = config.IBM_API_KEY;
+
+const IBM_SERVICE_URL = config.IBM_SERVICE_URL;
 
 const keywords = [
   "google",
@@ -35,11 +38,6 @@ const keywords = [
   "where",
   "is"
 ];
-
-const botChannel = config.botChannel;
-const token = config.botToken;
-const API_KEY = config.API_KEY;
-const CSE_ID = config.CSE_ID;
 
 client.on("ready", () => {
   console.log(`Bot has started, with ${client.users.cache.size} users, in ${client.channels.cache.size} channels of ${client.guilds.cache.size} guilds.`);
@@ -90,69 +88,65 @@ client.on("message", async message => {
       const audioFileName = './' + user.id + '_' + Date.now() + '.pcm';
 
       audio.pipe(fs.createWriteStream(audioFileName));
+
+      
+
     
       audio.on('end', async () => {
         fs.stat(audioFileName, async (err, stat) => { 
           if (!err && stat.size) {
+
+            const speechToText = new SpeechToTextV1({
+                authenticator: new IamAuthenticator({
+                    apikey: IBM_API_KEY,
+                }),
+                    serviceUrl: IBM_SERVICE_URL,
+                });
+
+            var params = {
+                content_type: 'audio/wav',
+                objectMode: true,
+                profanityFilter: false
+            };
+
+
             const file = fs.readFileSync(audioFileName);
-            const audioBytes = file.toString('base64');
+            const recognizeStream = speechToText.recognizeUsingWebSocket(params);
             // ffmpeg -f s16be -ar 48000 -ac 2 -acodec pcm_s16le -i 165200428311642122_1619653540809.pcm test.wav
             exec('ffmpeg -y -f s16be -ar 48000 -ac 2 -acodec pcm_s16le -i ' + audioFileName + ' output.wav');
+                        
             
             setTimeout(function(){ 
-              exec('rm ' + audioFileName);
-              let newFile = fs.readFileSync("output.wav");
-              let audioStream = new MemoryStream();
-              bufferToStream(newFile).
-              pipe(Sox({
-                global: {
-                  'no-dither': true,
-                },
-                output: {
-                  bits: 16,
-                  rate: desiredSampleRate,
-                  channels: 1,
-                  encoding: 'signed-integer',
-                  endian: 'little',
-                  compression: 0.0,
-                  type: 'raw'
-                }
-              })).
-              pipe(audioStream);
-  
-              audioStream.on('finish', () => {
-                let audioBuffer = audioStream.toBuffer();
+                exec('rm ' + audioFileName);
+                // let newFile = fs.readFileSync("output.wav");
+                fs.createReadStream('output.wav').pipe(recognizeStream);
+                exec('rm *.pcm');
+              recognizeStream.on('data', function (event) {
                 
-                const audioLength = (audioBuffer.length / 2) * (1 / desiredSampleRate);
-                console.log('audio length', audioLength);
+                // console.log(event.results[0]);
+                if (!event.results.length == 0) {
+                    console.log("FUNKAR");
+                    let result = event.results[0].alternatives[0].transcript;
+                    let firstWord = result.split(" ")[0];
                 
-                let result = model.stt(audioBuffer);
-                
-                let firstWord = result.split(" ")[0];
-                
-                resArr = result.split(" ");
-
-                console.log('result:', result);
-                
-                console.log(resArr);
-                
-                if (result) {
-                  if (keywords.includes(firstWord)) {
-                    if (resArr.includes("what") && resArr.includes("time") || resArr.includes("what's") && resArr.includes("time")) {
-                      console.log("INNE")
-                      var current = new Date();
-                      client.channels.cache.get(botChannel).send("The time is: " + String(current.toLocaleTimeString()));
-                      // exec('rm *.pcm');
-                    } else {
-                      google_search(result);
-                      console.log("GOOGLAR")
-                      // exec('rm *.pcm');
+                    let resArr = result.split(" ");
+                    if (result) {
+                        if (keywords.includes(firstWord)) {
+                            if (resArr.includes("what") && resArr.includes("time") || resArr.includes("what's") && resArr.includes("time") ) {
+                                var current = new Date();
+                                client.channels.cache.get(botChannel).send("The time is: " + String(current.toLocaleTimeString()));
+                            // exec('rm *.pcm');
+                            } else {
+                                google_search(result);
+                                // console.log("GOOGLAR")
+                            // exec('rm *.pcm');
+                            }
+                        } else {
+                            // exec('rm *.pcm');
+                            console.log(result);
+                            // client.channels.cache.get(botChannel).send(`Did you say: "` + result + '"?');
+                        }
                     }
-                  } else {
-                    // exec('rm *.pcm');
-                    console.log(result);
-                    client.channels.cache.get(botChannel).send(`Did you say: "` + result + '"?');
-                  }
                 }
               });
               
@@ -169,12 +163,6 @@ client.on("message", async message => {
   
 });
 
-function bufferToStream(buffer) {
-	let stream = new Duplex();
-	stream.push(buffer);
-	stream.push(null);
-	return stream;
-}
 
 function setEmbed(title, url, desc, thumbnail="") {
    const embedMessage = new Discord.MessageEmbed()
@@ -186,6 +174,10 @@ function setEmbed(title, url, desc, thumbnail="") {
 
   return embedMessage
 }
+
+// function onEvent(name, event) {
+//   console.log(name, JSON.stringify(event, null, 2));
+// }
 
 function google_search(q) {
   client.channels.cache.get(botChannel).send("Searching for: " + q);
@@ -217,7 +209,6 @@ function google_search(q) {
 			img: (((o.pagemap || {}).cse_image || {})[0] || {}).src
 			}))
 		}
-		  // res.status(200).send(data);
       let embed = setEmbed(data.items[0].title, data.items[0].link, data.items[0].snippet, data.items[0].img);
       client.channels.cache.get(botChannel).send(embed);
 		})

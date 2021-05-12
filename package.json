@@ -15,6 +15,7 @@
     "discord.js": "^12.5.3",
     "ffmpeg-static": "^4.3.0",
     "googleapis": "^73.0.0",
+    "ibm-watson": "^6.0.4",
     "node-wav": "0.0.2",
     "opusscript": "0.0.8",
     "pcm2wav": "^1.0.3",
