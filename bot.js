@@ -12,6 +12,7 @@ const config = require("./config.json");
 const customsearch = google.customsearch('v1');
 let modelPath = './models/deepspeech-0.9.3-models.pbmm';
 // let modelPath = './output_graph.pb';
+//
 let model = new DeepSpeech.Model(modelPath);
 
 let desiredSampleRate = model.sampleRate();
