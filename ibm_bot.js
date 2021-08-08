@@ -7,6 +7,10 @@ const Discord = require("discord.js");
 const { exec } = require('child_process');
 const { google } = require('googleapis');
 const config = require("./config.json");
+const { Player } = require("discord-player");
+const ytdl = require('ytdl-core');
+const ytdld = require('ytdl-core-discord');
+const ytsr = require('ytsr');
 
 const customsearch = google.customsearch('v1');
 
@@ -27,6 +31,8 @@ const IBM_API_KEY = config.IBM_API_KEY;
 
 const IBM_SERVICE_URL = config.IBM_SERVICE_URL;
 
+const calling = ["hey serie", "hey series"]
+
 const keywords = [
   "google",
   "what",
@@ -36,8 +42,22 @@ const keywords = [
   "why",
   "what's",
   "where",
-  "is"
+  "is",
+  "play",
+  "skip",
+  "stop",
+  "lay"
 ];
+// getYtID("youtube ironman black sabbath lyrics")
+
+const player = new Player(client);
+
+// To easily access the player
+client.player = player;
+
+// add the trackStart event so when a song will be played this message will be sent
+client.player.on("trackStart", (message, track) => message.channel.send(`Now playing ${track.title}...`))
+
 
 client.on("ready", () => {
   console.log(`Bot has started, with ${client.users.cache.size} users, in ${client.channels.cache.size} channels of ${client.guilds.cache.size} guilds.`);
@@ -63,8 +83,17 @@ client.on("message", async message => {
 
   if(command === "clear cache") {
     exec('rm *.pcm');
+    await message.channel.send("Cache cleared!");
   }
 
+  if(command === "play") {
+    // connection.play("song.mp3", { volume: 0.5, bitrate: 192000 });
+    message.member.voice.channel.play("song.mp3", { volume: 0.5, bitrate: 192000 });
+  }
+
+  if(command === "skip" || command === "stop") {
+    connection.destroy();
+  }
 
   if(command === "join") {
     if (!message.member.voice.channel) return message.reply('Please join a voice channel first!');
@@ -106,7 +135,8 @@ client.on("message", async message => {
             var params = {
                 content_type: 'audio/wav',
                 objectMode: true,
-                profanityFilter: false
+                profanityFilter: false,
+                model: "en-US_Multimedia"
             };
 
 
@@ -125,25 +155,38 @@ client.on("message", async message => {
                 
                 // console.log(event.results[0]);
                 if (!event.results.length == 0) {
-                    console.log("FUNKAR");
+                    // console.log("FUNKAR");
                     let result = event.results[0].alternatives[0].transcript;
                     let firstWord = result.split(" ")[0];
-                
+                    console.log(result);
                     let resArr = result.split(" ");
+                    resArr.shift();
+                    let noKeyWord = resArr;
                     if (result) {
                         if (keywords.includes(firstWord)) {
                             if (resArr.includes("what") && resArr.includes("time") || resArr.includes("what's") && resArr.includes("time") ) {
                                 var current = new Date();
                                 client.channels.cache.get(botChannel).send("The time is: " + String(current.toLocaleTimeString()));
                             // exec('rm *.pcm');
-                            } else {
-                                google_search(result);
-                                // console.log("GOOGLAR")
+                            } else if (firstWord == "play" || firstWord == "lay") {
+                                // client.channels.cache.get(botChannel).send(`!join`);
+                                // client.channels.cache.get(botChannel).send(`!play ` + noKeyWord);
+                                console.log("inne");
+                                console.log(noKeyWord.join(' '));
+                                getYtID("youtube " + noKeyWord.join(' ') + " HD")
+                                setTimeout(function(){ connection.play("song.mp3", { volume: 0.5, bitrate: 192000 }); }, 3000);
+                                // connection.play(ytdld("carry on"));
+                            } else if (firstWord == "skip" || firstWord == "stop") {
+                                connection.destroy();
+                            }
+                            else {
+                                // google_search(result);
+                                console.log("GOOGLAR")
                             // exec('rm *.pcm');
                             }
                         } else {
                             // exec('rm *.pcm');
-                            console.log(result);
+                            console.log("Inget");
                             // client.channels.cache.get(botChannel).send(`Did you say: "` + result + '"?');
                         }
                     }
@@ -163,6 +206,52 @@ client.on("message", async message => {
   
 });
 
+async function getYtID(q) {
+  console.log(q);
+  const searchResults = await ytsr("not ready to die music");
+  console.log(searchResults.items[0].url)
+
+  ytdl(searchResults.items[0].url, { quality: 'highestaudio' })
+  .pipe(fs.createWriteStream('song.mp3'));
+  client.channels.cache.get(botChannel).send("Now playing: " + searchResults.items[0].title);
+
+  // customsearch.cse.list({
+	// 	auth: API_KEY,
+	// 	cx: CSE_ID,
+	// 	q: q
+	// })
+	// 	.then(result => result.data)
+	// 	.then((result) => {
+	// 	const { queries, items, searchInformation } = result;
+
+	// 	const page = (queries.request || [])[0] || {};
+	// 	const previousPage = (queries.previousPage || [])[0] || {};
+	// 	const nextPage = (queries.nextPage || [])[0] || {};
+
+	// 	const data = {
+	// 		q,
+	// 		totalResults: page.totalResults,
+	// 		count: page.count,
+	// 		startIndex: page.startIndex,
+	// 		nextPage: nextPage.startIndex,
+	// 		previousPage: previousPage.startIndex,
+	// 		time: searchInformation.searchTime,
+	// 		items: items.map(o => ({
+	// 		link: o.link,
+	// 		title: o.title,
+	// 		snippet: o.snippet,
+	// 		img: (((o.pagemap || {}).cse_image || {})[0] || {}).src
+	// 		}))
+	// 	}
+  //     console.log(data.items[0].link);
+  //     ytdl(data.items[0].link, { quality: 'highestaudio' })
+  //     .pipe(fs.createWriteStream('song.mp3'));
+  //     client.channels.cache.get(botChannel).send("Now playing: " + data.items[0].title);
+	// 	})
+	// 	.catch((err) => {
+	// 	  console.log(err);
+	// 	});
+}
 
 function setEmbed(title, url, desc, thumbnail="") {
    const embedMessage = new Discord.MessageEmbed()
