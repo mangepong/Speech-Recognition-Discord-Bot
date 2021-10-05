@@ -48,4 +48,4 @@ You can find the models here:
 Run `npm install` to install all the necessary packages.
 You'll need to install `ffmpeg` if you don't have it installed.
 
-You can start the bot with `node bot.js` for the DeepSpeech version or `node ibm_bot.js` for the IBM version.
+You can start the bot with `node bot.js` for the DeepSpeech version or `node ibm_bot.js` for the IBM version. For the music bot use `olg.js`.
