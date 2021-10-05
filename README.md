@@ -17,6 +17,13 @@ You can also ask the bot for the current time as long as you said these two keyw
 
 I've now made two different bots one with using the Mozilla DeepSpeech and one with IBM Watson. The DeepSpeech bot is trained with the models down below and are not as good as IBM's version.
 
+### Update 2
+
+You can now 'talk' with the bot using keywords and make it play songs!
+If you start the bot and tell it 'commands' it will post an embeded message with all avaliable commands for voice.
+
+You can also add songs by typing, type (prefix)commands e.g ?commands for a list of commands.
+
 ### Setup the bot
 
 You'll need to make an account on [IBM Cloud](https://cloud.ibm.com/) and [Google Cloud](https://cloud.google.com/) to be able to get an API KEY and some other information.
