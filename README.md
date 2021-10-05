@@ -19,10 +19,10 @@ I've now made two different bots one with using the Mozilla DeepSpeech and one w
 
 ### Update 2
 
-You can now 'talk' with the bot using keywords and make it play songs!
-If you start the bot and tell it 'commands' it will post an embeded message with all avaliable commands for voice.
+You can now 'talk' with the bot using keywords and make it play songs!\
+If you start the bot and tell it `commands` and it will post an embeded message with all avaliable commands for voice.
 
-You can also add songs by typing, type (prefix)commands e.g ?commands for a list of commands.
+You can also add songs by typing, type `(prefix)commands` e.g `?commands` for a list of commands.
 
 ### Setup the bot
 
